@@ -18,7 +18,7 @@ func ScrapeShipCode(imoNumber int, userAgent string) (string, error) {
 	var rawHTML string
 
 	// Leer el certificado
-	caCert, err := os.ReadFile("./pkg/config/shipdb.pem")
+	caCert, err := os.ReadFile("./shipdb.pem")
 	if err != nil {
 		log.Fatalf("Error al leer el certificado CA: %v", err)
 	}
@@ -56,7 +56,7 @@ func ScrapeShipCode(imoNumber int, userAgent string) (string, error) {
 func ScrapeData(url string, userAgent string) (string, error) {
 	var result string
 
-	caCert, err := os.ReadFile("./pkg/config/shipdb.pem")
+	caCert, err := os.ReadFile("./shipdb.pem")
 	if err != nil {
 		log.Fatalf("Error al leer el certificado CA: %v", err)
 	}
