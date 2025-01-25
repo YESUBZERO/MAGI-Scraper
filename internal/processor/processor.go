@@ -59,12 +59,15 @@ func ProcessMessage(producer *kafka.KafkaProducer, message []byte, scraperConfig
 			// Logica del Scraper
 			shipData := ScrapeHandler(aisMessage.IMO, scraperConfig)
 
-			// Publicar mensaje procesado
-			processedMessage, err := json.Marshal(shipData)
-			if err != nil {
-				return err
+			if shipData != "" {
+				// Publicar mensaje procesado
+				log.Println(shipData)
+				processedMessage, err := json.Marshal(shipData)
+				if err != nil {
+					return err
+				}
+				return producer.PublishMessage(processedMessage)
 			}
-			return producer.PublishMessage(processedMessage)
 		}
 	}
 	return nil
