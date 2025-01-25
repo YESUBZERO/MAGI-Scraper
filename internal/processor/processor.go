@@ -3,16 +3,43 @@ package processor
 import (
 	"encoding/json"
 	"log"
+	"sync"
+	"time"
 
 	"github.com/YESUBZERO/MAGI-Scraper/internal/config"
 	"github.com/YESUBZERO/MAGI-Scraper/internal/kafka"
 	"github.com/YESUBZERO/MAGI-Scraper/internal/parsership"
 	"github.com/YESUBZERO/MAGI-Scraper/internal/scraper"
+	"golang.org/x/net/context"
 )
 
 type AISMessage struct {
 	MsgType int `json:"msg_type"`
 	IMO     int `json:"imo"`
+}
+
+// Worker procesa mensajes de un canal y publica mensajes en Kafka
+func Worker(ctx context.Context, wg *sync.WaitGroup, messageChan <-chan []byte, producer *kafka.KafkaProducer, scraperConfig config.ScraperConfig) {
+	defer wg.Done()
+	for {
+		select {
+		case <-ctx.Done():
+			log.Println("Worker finalizado.")
+			return
+		case message, ok := <-messageChan:
+			if !ok {
+				return
+			}
+
+			// Procesar mensaje
+			if err := ProcessMessage(producer, message, scraperConfig); err != nil {
+				log.Printf("Error procesando mensaje: %v", err)
+			}
+
+			// Simular un retraso
+			time.Sleep(time.Duration(scraperConfig.Delay) * time.Second)
+		}
+	}
 }
 
 // Procesar un mensaje Kafka
@@ -27,7 +54,7 @@ func ProcessMessage(producer *kafka.KafkaProducer, message []byte, scraperConfig
 	// Filtrar mensajes relevantes
 	if aisMessage.MsgType == 5 || aisMessage.MsgType == 24 {
 		if aisMessage.IMO != 0 {
-			log.Printf("Procesando mensaje con IMO: %d", aisMessage.IMO)
+			log.Printf("Procesando scraping con IMO: %d", aisMessage.IMO)
 
 			// Logica del Scraper
 			shipData := ScrapeHandler(aisMessage.IMO, scraperConfig)

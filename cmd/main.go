@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"sync"
 	"syscall"
 
 	"github.com/YESUBZERO/MAGI-Scraper/internal/config"
@@ -38,17 +39,29 @@ func main() {
 		log.Fatalf("Error asegurando el tópico '%s': %v", cfg.Kafka.EnrichedTopic, err)
 	}
 
-	// Crear productor Kafka
+	// Iniciar productor Kafka
 	producer, err := kafka.NewKafkaProducer(cfg.Kafka.Brokers, cfg.Kafka.EnrichedTopic)
 	if err != nil {
 		log.Fatalf("Error inicializando productor Kafka: %v", err)
 	}
 	defer producer.Close()
 
+	// Canal para mensajes procesados
+	messageChan := make(chan []byte, 100)
+
+	// Crear pool de worker para procesar mensajes
+	var wg sync.WaitGroup
+	for i := 0; i < 5; i++ {
+		wg.Add(1)
+		go processor.Worker(ctx, &wg, messageChan, producer, cfg.Scraper)
+	}
+
 	// Iniciar el consumidor Kafka
 	err = kafka.StartKafkaConsumer(ctx, cfg.Kafka, func(message []byte) error {
 		// Procesar mensajes y publicar en el tópico
-		return processor.ProcessMessage(producer, message, cfg.Scraper)
+		messageChan <- message
+		return nil
+		//return processor.ProcessMessage(producer, message, cfg.Scraper)
 	})
 	if err != nil {
 		log.Fatalf("Error iniciando consumidor Kafka: %v", err)
