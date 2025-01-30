@@ -4,7 +4,6 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 
@@ -20,7 +19,7 @@ func ScrapeShipCode(imoNumber int, userAgent string) (string, error) {
 	// Leer el certificado
 	caCert, err := os.ReadFile("./shipdb.pem")
 	if err != nil {
-		log.Fatalf("Error al leer el certificado CA: %v", err)
+		return "", fmt.Errorf("error al leer el certificado CA: %v", err)
 	}
 
 	// Crear un pool de certificados raíz
@@ -47,9 +46,12 @@ func ScrapeShipCode(imoNumber int, userAgent string) (string, error) {
 	// Visitar la URL
 	err = c.Visit(url)
 	if err != nil {
-		return rawHTML, fmt.Errorf("error StatusCode: %w", err)
+		if fmt.Sprintf("%v", err) == "Internal Server Error" {
+			return rawHTML, nil
+		}
+		os.Exit(1)
+		return "", fmt.Errorf("error StatusCode: %w", err)
 	}
-
 	return "", nil
 }
 
@@ -58,7 +60,7 @@ func ScrapeData(url string, userAgent string) (string, error) {
 
 	caCert, err := os.ReadFile("./shipdb.pem")
 	if err != nil {
-		log.Fatalf("Error al leer el certificado CA: %v", err)
+		return "", fmt.Errorf("error al leer el certificado CA: %v", err)
 	}
 
 	// Crear un pool de certificados raíz
@@ -80,7 +82,7 @@ func ScrapeData(url string, userAgent string) (string, error) {
 
 	c.OnError(func(r *colly.Response, err error) {
 		// Manejar errores de scraping
-		log.Printf("Errror scraping %s: %v", url, err)
+		fmt.Printf("error scraping %s: %v\n", url, err)
 	})
 
 	err = c.Visit(url)

@@ -48,7 +48,7 @@ func StartKafkaConsumer(ctx context.Context, Config config.KafkaConfig, messageH
 		}
 	}()
 
-	log.Printf("Consumidor Kafka iniciado para el topico: %s", Config.ProcessedTopic)
+	log.Printf("📡 Consumidor Kafka iniciado para el topico: %s", Config.ProcessedTopic)
 	<-ctx.Done()
 	return nil
 }

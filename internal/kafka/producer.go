@@ -30,7 +30,7 @@ func NewKafkaProducer(brokers []string, topic string) (*KafkaProducer, error) {
 }
 
 // Publicar un mensaje en Kafka
-func (kp *KafkaProducer) PublishMessage(message []byte) error {
+func (kp *KafkaProducer) PublishMessage(message []byte, imo int) error {
 	_, _, err := kp.Producer.SendMessage(&sarama.ProducerMessage{
 		Topic: kp.Topic,
 		Value: sarama.ByteEncoder(message),
@@ -39,7 +39,7 @@ func (kp *KafkaProducer) PublishMessage(message []byte) error {
 		log.Printf("Error publicando mensaje enriquecido: %v", err)
 		return err
 	}
-	log.Printf("Mensaje enriquecido publicado en el tópico '%s'", kp.Topic)
+	log.Printf("✅ Mensaje %d publicado en el tópico %s", imo, kp.Topic)
 	return nil
 }
 

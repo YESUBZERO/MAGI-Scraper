@@ -20,6 +20,12 @@ func main() {
 		log.Fatalf("Error al cargar configuración: %v", err)
 	}
 
+	// Descargar certificado del servidor
+	host, certPath := "www.ship-db.de:443", "shipdb.pem"
+	if downloadErr := config.DownloadCertificate(host, certPath); downloadErr != nil {
+		log.Printf("error descargando certificado: %v", downloadErr)
+	}
+
 	// Contexto para manejar señales del sistema (Ctrl+C, etc.)
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()

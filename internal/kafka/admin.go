@@ -20,7 +20,7 @@ func EnsureTopicExists(brokers []string, topic string, partitions, replicationFa
 	}
 
 	if _, exists := topics[topic]; exists {
-		log.Printf("El tópico '%s' ya existe", topic)
+		log.Printf("🔗 El tópico '%s' ya existe", topic)
 		return nil
 	}
 
@@ -31,6 +31,6 @@ func EnsureTopicExists(brokers []string, topic string, partitions, replicationFa
 	if err != nil {
 		return err
 	}
-	log.Printf("Tópico '%s' creado con éxito", topic)
+	log.Printf("[🔗] Tópico '%s' creado con éxito", topic)
 	return nil
 }
